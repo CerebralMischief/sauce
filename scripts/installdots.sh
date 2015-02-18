@@ -7,8 +7,9 @@
 
 ########## Variables
 
-dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-#dir=~/sauce                    # dotfiles directory
+#dotfiles directory (source)
+#dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+dir=~/sauce/dotfiles
 olddir=~/sauce_old             # old dotfiles backup directory
 files="bashrc vimrc vim tmux.conf bash_git minttyrc gitconfig"    # list of files/folders to symlink in homedir
 
@@ -34,6 +35,6 @@ for file in $files; do
 done
 
 echo "Cloning Vundle so you can install your plugins ..."
-git clone https://github.com/gmarik/Vundle.vim.git ~/sauce/.vim/bundle/Vundle.vim 
+git clone https://github.com/gmarik/Vundle.vim.git ~/sauce/dotfiles/.vim/bundle/Vundle.vim 
 
 vim -c $(echo -e ':PluginInstall\n:q\n:q\n')
