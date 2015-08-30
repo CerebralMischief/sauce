@@ -8,6 +8,10 @@ set nolazyredraw
 " Draw more characters at a time
 set ttyfast
 
+set backspace=2 " Make backspace work like most apps
+
+"set mouse=a " Enable the mouse
+
 " Don't need compatibility with vi
 " Fixes things like scrolling with arrow keys in cygwin
 set nocompatible
@@ -32,6 +36,7 @@ call vundle#begin()
 
 " Ignore files I will never open with vim
 set wildignore+=*.zip,*.exe,*.dll,*.pdb,*.jpg,*.jpeg,*.png,*.gif
+set wildignore+=*/bin/*,*/node_modules/*
 "let g:ctrlp_custom_ignore = {
             "\ 'dir': '\v[\/]\.(git|hg|svn)$'
             "\ 'file': '\v\.(exe|so|dll|pdb|jpg|zip|gif|jpeg|png)$',
@@ -53,6 +58,42 @@ endfunction
 
 " ========== PLUGINS ===========
 
+" - Syntax for .proj, .props, .targets
+" - build open project with :make
+"   ie: :make /t:rebuild
+"
+" Plugin 'heaths/vim-msbuild'
+
+" Easy note taking in vim
+" :Note - create new buffer and load filetype/syntax
+"   also can use :e, :tabedit, :spit if filename note:<filename>
+"   if empty a new note is created
+" :NoteFromSelectedText (also \en)
+" :Note <text from title> - edit existing note or create new
+" :DeleteNote <text from title> - both of these support tab complete
+" :SearchNotes keyword, :SearchNotes /pattern/, tab complete
+"   search notes without argument searches under the cursor
+" :RecentNotes, :RelatedNotes
+" Fold text via headers (markdown #)
+" gf jump between notes (^-w f to jump to note in split, ^-w gf in tab)
+" ```<type> - embed highlighted code, also with {{{type ...}}}
+" notes are stored by default under ~/.vim/.../vim-notes/misc/notes/user
+Plugin 'xolox/vim-misc'
+Plugin 'xolox/vim-notes'
+
+" dbext.vim is like SMSS within vim
+"  
+Plugin 'vim-scripts/dbext.vim'
+
+" shell within vim, use :VimShell or :VimShellTab to open it
+Plugin 'Shougo/vimshell.vim'
+" vim-lucius color scheme
+Plugin 'jonathanfilip/vim-lucius'
+
+" MiniBufExpl
+" Does other things, but I mainly use it so I can click to select tabs
+" Plugin 'fholgado/minibufexpl.vim'
+
 " The Silver Searcher (use ag over ack over grep)
 Plugin 'rking/ag.vim'
 
@@ -68,7 +109,30 @@ let g:airline_powerline_fonts = 1
 " Persist NERDTree across tabs
 Plugin 'jistr/vim-nerdtree-tabs'
 " Integrate with git (and add branch name to airline)
+" Within :Gstatus use U to checkout a file in the list
+"           use - to add/remove a file from staging
 Plugin 'tpope/vim-fugitive'
+" Visualize and explore git
+Plugin 'gregsexton/gitv'
+" Surround things with stuff like (), [], '', <tags>, etc.
+" ie:
+"   cs"' -- change surrounding " to be '
+"   cs'<q> -- change surrounding ' to be <q></q>
+"   cs]{ -- change [] to {} and add space
+"   cs]} -- change [] to {} no added space
+"   ds" -- delete surrounding "
+"   ds{ -- delete surrounding { and space
+"   yssb or yss) -- wrap entire line with parens
+"   ys2aw"  -- surround 2 words, starting at beginning, with quotes
+"   ys2w"   -- surround 2 words, starting at cursor, with quotes
+"
+" In Visual mode
+"   S<p class="important"> will wrap the selected with <p..></p>
+"   s<p> will wrap without indenting
+Plugin 'tpope/vim-surround'
+
+" Make more stuff (esp things like vim-surround) repeatable with dot . command
+Plugin 'tpope/vim-repeat'
 
 " Show me a pretty color table when I type :XtermColorTable 
 Plugin 'guns/xterm-color-table.vim'
@@ -77,12 +141,26 @@ Plugin 'SyntaxAttr.vim'
 " Vundle package manager for vim
 Plugin 'gmarik/Vundle.vim'
 
+" Integration with typescript-tools server
+Plugin 'clausreinke/typescript-tools.vim'
+" TypeScript syntax and such
+Plugin 'leafgarland/typescript-vim'
+" Make YCM trigger on '.' with typescript, ie: foo.x
+if !exists("g:ycm_semantic_triggers")
+    let g:ycm_semantic_triggers = {}
+endif
+let g:ycm_semantic_triggers['typescript'] = ['.']
+
+" Gives decent highlighting for Razor, web forms, etc.
+"   Build/etc. features don't seem to work right under cygwin :(
+Plugin 'OrangeT/vim-csharp'
 " Fast, lightweight syntax highlighting for lots of languages
 Plugin 'sheerun/vim-polyglot'
 " React jsx highlighting for vim
 Plugin 'mxw/vim-jsx'
 " SCSS highlighting
 Plugin 'cakebaker/scss-syntax.vim'
+
 " Fuzzy file finder
 " <c-p> Open ctrlp
 " <ESC> Close ctrlp
@@ -94,9 +172,10 @@ Plugin 'cakebaker/scss-syntax.vim'
 " horizontal split
 " <c-y> Create a new file and its parent directories
 " <c-z> Mark/unmark multiple files <c-o> opens them
-Plugin 'kien/ctrlp.vim'
+ Plugin 'kien/ctrlp.vim'
 " No maximum number of cached files for ctrlp (stupid massive solutions)
 let g:ctrlp_max_files=0
+
 " Show me indentation
 " <Leader>ig    Toggle showing identation
 " :help indent-guides   to get help on this plugin
@@ -112,6 +191,7 @@ Plugin 'scrooloose/syntastic'
 let g:syntastic_check_on_open=1
 let g:syntastic_json_checkers=['jsonlint']
 au BufRead,BufNewFile *.json set filetype=json
+
 
 " File tree browser
 Plugin 'scrooloose/nerdtree'
@@ -180,6 +260,24 @@ syntax on
 " I want to see vim airline's status bar at the bottom
 set laststatus=2
 
+autocmd BufRead,BufNewFile *.es6 setfiletype javascript
+autocmd FileType text call SetUpTextEditing()
+
+function! SetUpTextEditing()
+    if (&filetype ==# 'text')
+        set wrap
+        set linebreak
+        set nolist
+    endif
+endfunction
+
+set sc
+
+au BufRead,BufNewFile *.ts setlocal filetype=typescript
+autocmd FileType typescript setlocal omnifunc=TSScompleteFunc
+
+set rtp+=~/.vim/bundle/typescript-tools.vim/
+
 " Use Silver Searcher instead of grep
 "if executable('ag')
 "    " Note we extract the column as well as the file and line number
@@ -190,3 +288,13 @@ set laststatus=2
 " Use silver searcher to find the word under the cursor with K
 "xnoremap  K y:<c-u>Ag <C-R>=shellescape(expand(@"),1)<CR>:copen<CR>
 "nnoremap  K :<c-u>Ag <c-r>=shellescape(expand("<cword>"),1)<cr>:copen<cr>
+"
+"
+" If using gvim, set guifont
+if has("gui_running")
+    set guifont=Ubuntu\ Mono\ For\ Powerline\ 13
+endif
+
+if filereadable(expand("~/.machinevimrc"))
+    source ~/.machinevimrc
+endif
